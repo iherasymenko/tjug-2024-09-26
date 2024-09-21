@@ -1,0 +1,25 @@
+plugins {
+    id 'application'
+}
+
+application {
+    mainClass = 'ca.tjug.apps.b.Application'
+    mainModule = 'ca.tjug.apps.b'
+    applicationDefaultJvmArgs = ["--enable-preview"]
+}
+
+tasks.named('distTar').configure { task -> task.enabled = false }
+
+tasks.withType(JavaCompile).configureEach { task ->
+    task.options.release = 23
+    task.options.compilerArgs += '--enable-preview'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':lib-1')
+    implementation project(':lib-2')
+}

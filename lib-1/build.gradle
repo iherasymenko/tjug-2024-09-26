@@ -1,0 +1,16 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api 'org.json:json:20240303'
+    implementation 'org.yaml:snakeyaml:2.3'
+}
+
+repositories {
+    mavenCentral()
+}
+
+tasks.withType(JavaCompile).configureEach { task ->
+    task.options.release = 21
+}
