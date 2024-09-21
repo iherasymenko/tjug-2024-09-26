@@ -1,0 +1,15 @@
+plugins {
+    id 'ca.tjug.java-conventions'
+    id 'application'
+}
+
+application {
+    applicationDefaultJvmArgs = ["--enable-preview"]
+}
+
+tasks.named('distTar').configure { task -> task.enabled = false }
+
+tasks.withType(JavaCompile).configureEach { task ->
+    task.options.release = 23
+    task.options.compilerArgs += '--enable-preview'
+}

@@ -1,7 +1,3 @@
 plugins {
-    id 'java-library'
-}
-
-tasks.withType(JavaCompile).configureEach { task ->
-    task.options.release = 21
+    id 'ca.tjug.java-library-conventions'
 }

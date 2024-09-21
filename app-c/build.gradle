@@ -1,22 +1,10 @@
 plugins {
-    id 'application'
+    id 'ca.tjug.application-conventions'
 }
 
 application {
     mainClass = 'ca.tjug.apps.c.Application'
     mainModule = 'ca.tjug.apps.c'
-    applicationDefaultJvmArgs = ["--enable-preview"]
-}
-
-tasks.named('distTar').configure { task -> task.enabled = false }
-
-tasks.withType(JavaCompile).configureEach { task ->
-    task.options.release = 23
-    task.options.compilerArgs += '--enable-preview'
-}
-
-repositories {
-    mavenCentral()
 }
 
 dependencies {
