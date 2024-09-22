@@ -10,18 +10,3 @@ application {
 dependencies {
     implementation project(':lib-1')
 }
-
-//noinspection UnnecessaryQualifiedReference
-def imageTask = tasks.register('image', ca.tjug.gradle.plugins.jlink_application.ImageTask) { task ->
-    task.group = BasePlugin.BUILD_GROUP
-    task.description = 'Builds a jlink image'
-    task.modulePath = files(tasks.named(JavaPlugin.JAR_TASK_NAME), configurations.runtimeClasspath)
-    task.imageDirectory = layout.buildDirectory.dir("images/a")
-    task.launcher = ['a': 'ca.tjug.apps.a/ca.tjug.apps.a.Application']
-    task.launcherVmOptions = ['--enable-preview']
-    task.addModules = ['ca.tjug.apps.a']
-}
-
-tasks.named(BasePlugin.ASSEMBLE_TASK_NAME).configure { task ->
-    task.dependsOn(imageTask)
-}
