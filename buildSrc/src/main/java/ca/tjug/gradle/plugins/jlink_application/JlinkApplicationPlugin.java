@@ -47,6 +47,26 @@ public class JlinkApplicationPlugin implements Plugin<Project> {
             });
 
             tasks.named(BasePlugin.ASSEMBLE_TASK_NAME).configure(task -> task.dependsOn(imageTask));
+
+            tasks.register("imageRun", RunImageTask.class, task -> {
+                task.setGroup(ApplicationPlugin.APPLICATION_GROUP);
+                task.setDescription("Runs the project as a JVM application bundled with jlink");
+
+                task.getImageDirectory().convention(imageTask.flatMap(ImageTask::getImageDirectory));
+
+                task.getMainClass().convention(ext.getMainClass());
+                task.getMainModule().convention(ext.getMainModule());
+                task.getVmOptions().convention(ext.getVmOptions());
+            });
+
+            tasks.register("imageModules", ModulesImageTask.class, task -> {
+                task.setGroup(HelpTasksPlugin.HELP_GROUP);
+                task.setDescription("Displays modules of the project JVM application bundled with jlink");
+
+                task.getImageDirectory().convention(imageTask.flatMap(ImageTask::getImageDirectory));
+                task.getVmOptions().convention(ext.getVmOptions());
+            });
+
         });
     }
 

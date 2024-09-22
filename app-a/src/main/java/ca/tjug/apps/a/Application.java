@@ -2,15 +2,16 @@ package ca.tjug.apps.a;
 
 import ca.tjug.libs.one.One;
 
-import static java.io.IO.*;
+// https://github.com/gradle/gradle/issues/1251
+import static java.lang.System.out;
 
 public class Application {
 
     void main() {
         var one = new One();
-        println(one.doOne());
-        println("Powered by JDK %s by %s".formatted(System.getProperty("java.version"), System.getProperty("java.vendor")));
-        println("App A did its job and finished successfully");
+        out.println(one.doOne());
+        out.println("Powered by JDK %s by %s".formatted(System.getProperty("java.version"), System.getProperty("java.vendor")));
+        out.println("App A did its job and finished successfully");
     }
 
 }
