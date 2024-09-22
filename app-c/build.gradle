@@ -1,10 +1,12 @@
 plugins {
-    id 'ca.tjug.application-conventions'
+    id 'ca.tjug.java-conventions'
+    id 'ca.tjug.jlink-application'
 }
 
-application {
+jlinkApplication {
     mainClass = 'ca.tjug.apps.c.Application'
     mainModule = 'ca.tjug.apps.c'
+    vmOptions = ['-XX:+UnlockExperimentalVMOptions', '-XX:+UseEpsilonGC']
 }
 
 dependencies {

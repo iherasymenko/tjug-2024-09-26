@@ -18,29 +18,34 @@ public class JlinkApplicationPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         PluginContainer plugins = project.getPlugins();
+        JlinkApplicationPluginExtension ext = project.getExtensions().create("jlinkApplication", JlinkApplicationPluginExtension.class);
+        plugins.withType(ApplicationPlugin.class, _ -> {
+            JavaApplication javaApplication = project.getExtensions().getByType(JavaApplication.class);
+            ext.getMainClass().convention(javaApplication.getMainClass());
+            ext.getMainModule().convention(javaApplication.getMainModule());
+            ext.getVmOptions().convention(project.provider(javaApplication::getApplicationDefaultJvmArgs));
+        });
+
         plugins.withType(JavaPlugin.class, _ -> {
             TaskContainer tasks = project.getTasks();
             TaskProvider<ImageTask> imageTask = tasks.register("image", ImageTask.class, task -> {
                 Provider<Directory> imageDirectory = project.getLayout()
                         .getBuildDirectory()
                         .dir("images/" + project.getName());
+                Provider<Map<String, String>> launchers = ext.getMainModule().zip(
+                        ext.getMainClass(),
+                        (mainModule, mainClass) -> Map.of(project.getName(), mainModule + "/" + mainClass)
+                );
                 task.setGroup(BasePlugin.BUILD_GROUP);
                 task.setDescription("Builds a jlink image");
                 task.getImageDirectory().convention(imageDirectory);
                 task.getModulePath().convention(project.files(tasks.named(JavaPlugin.JAR_TASK_NAME), project.getConfigurations().named(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
+                task.getLauncher().convention(launchers);
+                task.getAddModules().convention(ext.getMainModule().map(List::of));
+                task.getLauncherVmOptions().convention(ext.getVmOptions());
+                task.getStripDebug().convention(ext.getStripDebug());
             });
-            plugins.withType(ApplicationPlugin.class, _ -> {
-                JavaApplication javaApplication = project.getExtensions().getByType(JavaApplication.class);
-                imageTask.configure(task -> {
-                    var launchers = javaApplication.getMainModule().zip(
-                            javaApplication.getMainClass(),
-                            (mainModule, mainClass) -> Map.of(project.getName(), mainModule + "/" + mainClass)
-                    );
-                    task.getLauncher().convention(launchers);
-                    task.getAddModules().convention(javaApplication.getMainModule().map(List::of));
-                    task.getLauncherVmOptions().convention(project.provider(javaApplication::getApplicationDefaultJvmArgs));
-                });
-            });
+
             tasks.named(BasePlugin.ASSEMBLE_TASK_NAME).configure(task -> task.dependsOn(imageTask));
         });
     }

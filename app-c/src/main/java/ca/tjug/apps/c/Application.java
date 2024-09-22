@@ -4,19 +4,17 @@ import ca.tjug.libs.one.One;
 import ca.tjug.libs.three.Three;
 import ca.tjug.libs.two.Two;
 
-import static java.io.IO.*;
-
 public class Application {
 
-    void main() {
+    public static void main(String[] args) {
         var one = new One();
         var two = new Two();
         var three = new Three();
-        println(one.doOne());
+        System.out.print(one.doOne());
         two.doTwo();
         three.doThree();
-        println("Powered by JDK %s by %s".formatted(System.getProperty("java.version"), System.getProperty("java.vendor")));
-        println("App C did its job and finished successfully");
+        System.out.println("Powered by JDK %s by %s".formatted(System.getProperty("java.version"), System.getProperty("java.vendor")));
+        System.out.println("App C did its job and finished successfully");
     }
 
 }

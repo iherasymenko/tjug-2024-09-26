@@ -7,6 +7,10 @@ application {
     mainModule = 'ca.tjug.apps.b'
 }
 
+jlinkApplication {
+    stripDebug = true
+}
+
 dependencies {
     implementation project(':lib-1')
     implementation project(':lib-2')
