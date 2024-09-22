@@ -11,39 +11,15 @@ dependencies {
     implementation project(':lib-1')
 }
 
-def imageTask = tasks.register('image') { task ->
+//noinspection UnnecessaryQualifiedReference
+def imageTask = tasks.register('image', ca.tjug.gradle.plugins.jlink_application.ImageTask) { task ->
     task.group = BasePlugin.BUILD_GROUP
     task.description = 'Builds a jlink image'
-
-    task.inputs.files(configurations.runtimeClasspath)
-    task.inputs.file(tasks.named("jar", Jar).flatMap { it.archiveFile })
-
-    def outputFolder = layout.buildDirectory.dir("images/a")
-    task.outputs.dir(outputFolder)
-
-    task.doLast {
-        delete(outputFolder.get())
-    }
-    task.doLast {
-        //noinspection UnnecessaryQualifiedReference
-        def jlink = java.util.spi.ToolProvider.findFirst('jlink').orElseThrow { new GradleException('jlink is not available in this JDK') }
-        def modulePath = configurations.runtimeClasspath.files + tasks.named('jar', Jar).get().archiveFile.get().asFile
-        def exitCode = jlink.run(
-                System.out,
-                System.out,
-                '--module-path', String.join(File.pathSeparator, modulePath.collect { file -> file.getAbsolutePath() }),
-                '--output', outputFolder.get().asFile.absolutePath,
-                '--add-modules', 'ca.tjug.apps.a',
-                '--launcher', 'a=ca.tjug.apps.a/ca.tjug.apps.a.Application',
-        )
-        if (exitCode != 0) {
-            throw new GradleException("jlinked exited with code: " + exitCode)
-        }
-    }
-    task.doLast {
-        def launcherFile = outputFolder.get().file("bin/a").asFile
-        launcherFile.text = launcherFile.text.replace("JLINK_VM_OPTIONS=", "JLINK_VM_OPTIONS=--enable-preview")
-    }
+    task.modulePath = files(tasks.named(JavaPlugin.JAR_TASK_NAME), configurations.runtimeClasspath)
+    task.imageDirectory = layout.buildDirectory.dir("images/a")
+    task.launcher = ['a': 'ca.tjug.apps.a/ca.tjug.apps.a.Application']
+    task.launcherVmOptions = ['--enable-preview']
+    task.addModules = ['ca.tjug.apps.a']
 }
 
 tasks.named(BasePlugin.ASSEMBLE_TASK_NAME).configure { task ->
