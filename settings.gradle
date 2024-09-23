@@ -2,3 +2,21 @@ rootProject.name = 'tjug-2024-09'
 
 include(':app-a', ':app-b', ':app-c')
 include(':lib-1', ':lib-2', 'lib-3')
+
+dependencyResolutionManagement {
+    repositories {
+        ivy {
+            url = uri('https://github.com/ibmruntimes/semeru23-binaries/releases/download/jdk-23+37_openj9-0.47.0/')
+            patternLayout {
+                artifact '[artifact].[ext]'
+            }
+            metadataSources {
+                artifact()
+            }
+            content {
+                includeGroup('com.ibm.semeru.cdn')
+            }
+        }
+        mavenCentral()
+    }
+}

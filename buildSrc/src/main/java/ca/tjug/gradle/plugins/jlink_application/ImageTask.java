@@ -12,12 +12,19 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 import java.util.spi.ToolProvider;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.joining;
 
 public abstract class ImageTask extends DefaultTask {
 
@@ -37,6 +44,11 @@ public abstract class ImageTask extends DefaultTask {
     @Optional
     public abstract Property<Boolean> getStripDebug();
 
+    @InputDirectory
+    @Optional
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract DirectoryProperty getCrossTargetJdk();
+
     @OutputDirectory
     public abstract DirectoryProperty getImageDirectory();
 
@@ -50,8 +62,17 @@ public abstract class ImageTask extends DefaultTask {
         Directory outputDirectory = getImageDirectory().get();
         getFileSystemOperations().delete(spec -> spec.delete(outputDirectory));
 
+        Set<File> modulePathEntries = getModulePath()
+                .get()
+                .getFiles();
+
+        String modulePath = Stream.concat(resolveCrossTargetJmodsFolder(), modulePathEntries.stream())
+                .map(File::getAbsolutePath)
+                .sorted()
+                .collect(joining(File.pathSeparator));
+
         List<String> args = new ArrayList<>();
-        args.addAll(List.of("--module-path", getModulePath().get().getAsPath()));
+        args.addAll(List.of("--module-path", modulePath));
         args.addAll(List.of("--output", outputDirectory.getAsFile().getAbsolutePath()));
         if (getStripDebug().getOrElse(false)) {
             args.add("--strip-debug");
@@ -86,6 +107,34 @@ public abstract class ImageTask extends DefaultTask {
                 throw new AssertionError("No launcher found");
             }
         }
+    }
+
+    private Stream<File> resolveCrossTargetJmodsFolder() throws IOException {
+        if (!getCrossTargetJdk().isPresent()) {
+            return Stream.empty();
+        }
+        Path directory = getCrossTargetJdk().get().getAsFile().toPath();
+        try (Stream<Path> walker = Files.walk(directory)) {
+            List<Path> releaseFiles = walker.filter(path -> path.getFileName().toString().equals("release"))
+                    .toList();
+            for (Path releaseFile : releaseFiles) {
+                try (InputStream is = Files.newInputStream(releaseFile)) {
+                    Properties props = new Properties();
+                    props.load(is);
+                    String javaVersion = props.getProperty("JAVA_VERSION");
+                    String osName = props.getProperty("OS_NAME");
+                    String osArch = props.getProperty("OS_ARCH");
+                    if (javaVersion != null) {
+                        Path jdkRoot = releaseFile.getParent();
+                        getLogger().info("Resolved cross target JDK: {}, {}/{} in {}", javaVersion, osName, osArch, jdkRoot);
+                        return Stream.of(jdkRoot.resolve("jmods").toFile());
+                    }
+                } catch (Exception e) {
+                    getLogger().info("Cannot read 'release' file", e);
+                }
+            }
+        }
+        throw new GradleException("Cannot find a valid 'release' file in " + directory + " or any of its subdirectories");
     }
 
     private static void setArgsInLauncher(Path launcherFile, String vmOptionsString) throws IOException {

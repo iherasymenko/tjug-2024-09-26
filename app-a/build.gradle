@@ -7,6 +7,22 @@ application {
     mainModule = 'ca.tjug.apps.a'
 }
 
+jlinkImages {
+    macAarch64 {
+        jdkArchive = 'ibm-semeru-open-jdk_aarch64_mac_23_37_openj9-0.47.0.tar.gz'
+        group = 'com.ibm.semeru.cdn'
+    }
+    windowsX64 {
+        jdkArchive = 'ibm-semeru-open-jdk_x64_windows_23_37_openj9-0.47.0.zip'
+        group = 'com.ibm.semeru.cdn'
+    }
+    aixPpc64 {
+        jdkArchive = 'ibm-semeru-open-jdk_ppc64_aix_23_37_openj9-0.47.0.tar.gz'
+        group = 'com.ibm.semeru.cdn'
+    }
+}
+
 dependencies {
     implementation project(':lib-1')
+    //jdkArchiveWindowsX64 implementation(group: 'com.ibm.semeru.cdn', name: 'ibm-semeru-open-jdk_x64_windows_23_37_openj9-0.47.0', ext: 'zip')
 }

@@ -5,7 +5,3 @@ plugins {
 tasks.withType(JavaCompile).configureEach { task ->
     task.options.release = 21
 }
-
-repositories {
-    mavenCentral()
-}
